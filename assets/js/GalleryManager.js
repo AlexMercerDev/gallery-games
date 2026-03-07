@@ -133,7 +133,7 @@ export class GalleryManager {
         container.appendChild(label);
     }
 
-    async renderLeaderboard() {
+    async renderLeaderboard(scope = 'all_time') {
         if (!this.currentGame) return;
         const container = document.getElementById('leaderboard-container');
         if (!container) return;
@@ -144,7 +144,7 @@ export class GalleryManager {
 
         // 1. Try Remote first
         try {
-            const res = await fetch(`/api/scores?gameId=${this.currentGame.id}`);
+            const res = await fetch(`/api/scores?gameId=${this.currentGame.id}&scope=${scope}`);
             if (res.ok) {
                 leaderboard = await res.json();
             }
@@ -154,21 +154,43 @@ export class GalleryManager {
             leaderboard = JSON.parse(localStorage.getItem(key) || '[]');
         }
 
-        this.displayLeaderboard(leaderboard, container);
+        this.displayLeaderboard(leaderboard, container, scope);
     }
 
-    displayLeaderboard(leaderboard, container) {
+    displayLeaderboard(leaderboard, container, scope) {
         container.innerHTML = '';
+        
+        // Tab Switcher
+        const tabs = document.createElement('div');
+        tabs.style.marginBottom = '10px';
+        tabs.style.display = 'flex';
+        tabs.style.gap = '10px';
+        tabs.style.justifyContent = 'center';
+
+        const btnAll = document.createElement('button');
+        btnAll.innerText = "All Time";
+        btnAll.style.fontSize = '0.7rem';
+        btnAll.style.opacity = scope === 'all_time' ? '1' : '0.5';
+        btnAll.onclick = () => this.renderLeaderboard('all_time');
+
+        const btnWeek = document.createElement('button');
+        btnWeek.innerText = "Weekly";
+        btnWeek.style.fontSize = '0.7rem';
+        btnWeek.style.opacity = scope === 'weekly' ? '1' : '0.5';
+        btnWeek.onclick = () => this.renderLeaderboard('weekly');
+
+        tabs.appendChild(btnAll);
+        tabs.appendChild(btnWeek);
+        container.appendChild(tabs);
+
         if (!leaderboard || leaderboard.length === 0) {
-            container.innerHTML = '<p style="color: #555; font-style: italic;">No highscores yet.</p>';
+            const msg = document.createElement('p');
+            msg.innerText = "No highscores yet.";
+            msg.style.color = "#555";
+            msg.style.fontStyle = "italic";
+            container.appendChild(msg);
             return;
         }
-
-        const title = document.createElement('h4');
-        title.innerText = "Top Players";
-        title.style.margin = "0 0 10px 0";
-        title.style.color = "#333";
-        container.appendChild(title);
 
         const list = document.createElement('ul');
         list.style.listStyle = "none";
