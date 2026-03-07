@@ -40,6 +40,20 @@ export class GalleryManager {
         console.log(`Daily Game for ${dateStr}: ${this.currentGame.name}`);
     }
 
+    selectRandomGame() {
+        if (this.games.length === 0) return;
+        
+        // Pure random (non-seeded) for manual "Give me another"
+        let newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * this.games.length);
+        } while (this.games.length > 1 && this.games[newIndex].id === this.currentGame.id);
+
+        this.currentGame = this.games[newIndex];
+        console.log(`Random selection: ${this.currentGame.name}`);
+        this.updateUI();
+    }
+
     updateUI() {
         if (!this.currentGame) return;
 

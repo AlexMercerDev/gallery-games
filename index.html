@@ -49,6 +49,9 @@
         <button id="play-btn" class="play-button"
             style="background: #fff; color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); border: none; cursor: pointer;">PLAY NOW</button>
 
+        <button id="random-btn" 
+            style="margin-top: 10px; background: rgba(255, 255, 255, 0.1); color: #6B5B5B; border: 1px solid rgba(107, 91, 91, 0.3); padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(5px);">Give me another Puff!</button>
+
         <div id="rating-container" style="margin-top: 2rem; text-align: center;">
             <!-- Stars injected here -->
         </div>
@@ -75,6 +78,10 @@
                 const url = gallery.currentGame.path;
                 document.getElementById('game-frame').src = url;
                 document.getElementById('game-frame-container').style.display = 'block';
+            };
+
+            document.getElementById('random-btn').onclick = () => {
+                gallery.selectRandomGame();
             };
 
             document.getElementById('close-game').onclick = () => {
