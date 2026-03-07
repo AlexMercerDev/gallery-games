@@ -54,15 +54,54 @@ export class GalleryManager {
         this.renderLeaderboard();
     }
 
-    // Rating System
-    // Rating System
-    submitRating(rating) {
+    // --- API & Persistence ---
+
+    async submitRating(rating) {
         if (!this.currentGame) return;
         const gameId = this.currentGame.id;
-        const key = `gallery_rating_${gameId}`;
-        localStorage.setItem(key, rating);
-        console.log(`Rating ${rating} saved for ${gameId} to localStorage.`);
+
+        // 1. Local Fallback
+        localStorage.setItem(`gallery_rating_${gameId}`, rating);
+
+        // 2. Try Remote
+        try {
+            const response = await fetch('/api/rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameId: gameId, rating: rating })
+            });
+            if (response.ok) console.log("Rating synced to server.");
+        } catch (e) {
+            console.warn("Remote rating failed, using local only.");
+        }
+
         this.renderRating();
+    }
+
+    async submitScore(name, score) {
+        if (!this.currentGame) return;
+        const gameId = this.currentGame.id;
+
+        // 1. Local Fallback
+        const key = `${gameId}-leaderboard`;
+        let localLb = JSON.parse(localStorage.getItem(key) || '[]');
+        localLb.push({ name, score, date: new Date().toISOString() });
+        localLb.sort((a, b) => b.score - a.score);
+        localStorage.setItem(key, JSON.stringify(localLb.slice(0, 5)));
+
+        // 2. Try Remote
+        try {
+            const response = await fetch('/api/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameId: gameId, name: name, score: score })
+            });
+            if (response.ok) console.log("Score synced to server.");
+        } catch (e) {
+            console.warn("Remote score submission failed.");
+        }
+
+        this.renderLeaderboard();
     }
 
     getRating() {
@@ -73,6 +112,7 @@ export class GalleryManager {
     renderRating() {
         const rating = this.getRating();
         const container = document.getElementById('rating-container');
+        if (!container) return;
         container.innerHTML = '';
 
         for (let i = 1; i <= 5; i++) {
@@ -80,7 +120,7 @@ export class GalleryManager {
             star.innerText = '★';
             star.style.cursor = 'pointer';
             star.style.fontSize = '2rem';
-            star.style.color = i <= rating ? '#FFD700' : '#444'; // Gold vs Gray
+            star.style.color = i <= rating ? '#FFD700' : '#444'; 
             star.onclick = () => this.submitRating(i);
             container.appendChild(star);
         }
@@ -93,20 +133,28 @@ export class GalleryManager {
         container.appendChild(label);
     }
 
-    renderLeaderboard() {
+    async renderLeaderboard() {
         if (!this.currentGame) return;
         const container = document.getElementById('leaderboard-container');
         if (!container) return;
-        
-        container.innerHTML = '';
-        const key = `${this.currentGame.id}-leaderboard`;
-        let localLb = [];
-        try { 
-            localLb = JSON.parse(localStorage.getItem(key) || '[]'); 
-        } catch (e) { 
-            console.error("Local Leaderboard Error:", e);
+
+        container.innerHTML = '<p style="font-size: 0.8rem; opacity: 0.5;">Loading scores...</p>';
+
+        let leaderboard = [];
+
+        // 1. Try Remote first
+        try {
+            const res = await fetch(`/api/scores?gameId=${this.currentGame.id}`);
+            if (res.ok) {
+                leaderboard = await res.json();
+            }
+        } catch (err) {
+            console.warn("Using Local Leaderboard Fallback");
+            const key = `${this.currentGame.id}-leaderboard`;
+            leaderboard = JSON.parse(localStorage.getItem(key) || '[]');
         }
-        this.displayLeaderboard(localLb, container);
+
+        this.displayLeaderboard(leaderboard, container);
     }
 
     displayLeaderboard(leaderboard, container) {
@@ -120,7 +168,6 @@ export class GalleryManager {
         title.innerText = "Top Players";
         title.style.margin = "0 0 10px 0";
         title.style.color = "#333";
-        title.style.fontFamily = "Inter, sans-serif";
         container.appendChild(title);
 
         const list = document.createElement('ul');
@@ -128,7 +175,6 @@ export class GalleryManager {
         list.style.padding = "0";
         list.style.margin = "0";
         list.style.textAlign = "left";
-        list.style.width = "100%";
 
         leaderboard.slice(0, 5).forEach((entry, index) => {
             const li = document.createElement('li');
@@ -137,17 +183,15 @@ export class GalleryManager {
             li.style.display = "flex";
             li.style.justifyContent = "space-between";
             li.style.fontSize = "0.9rem";
-            li.style.fontFamily = "Inter, sans-serif";
 
             const nameSpan = document.createElement('span');
             nameSpan.innerText = `${index + 1}. ${entry.name || 'Anon'}`;
             nameSpan.style.fontWeight = index === 0 ? "bold" : "normal";
-            nameSpan.style.color = index === 0 ? "#E65100" : "#333"; // Deep Orange for #1
+            nameSpan.style.color = index === 0 ? "#E65100" : "#333";
 
             const scoreSpan = document.createElement('span');
             scoreSpan.innerText = entry.score;
             scoreSpan.style.fontWeight = "bold";
-            scoreSpan.style.color = "#333";
 
             li.appendChild(nameSpan);
             li.appendChild(scoreSpan);

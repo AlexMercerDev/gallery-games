@@ -81,6 +81,12 @@
         document.getElementById('saveBtn').onclick = () => {
             const name = document.getElementById('playerName').value || "Anon";
             game.saveHighscore(name);
+
+            // Sync with Gallery API if available (Remote Leaderboard)
+            if (window.parent && window.parent.GalleryAPI) {
+                window.parent.GalleryAPI.submitScore(name, game.score);
+            }
+
             document.getElementById('highScoreInput').style.display = 'none';
             document.getElementById('retryContainer').style.display = 'block';
         };

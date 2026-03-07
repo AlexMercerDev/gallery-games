@@ -7,9 +7,36 @@
     <title>Gallery Games</title>
     <link rel="stylesheet" href="assets/css/main.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Iframe overlay */
+        #game-frame-container {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #FDF6E3;
+            z-index: 1000;
+        }
+        #game-frame {
+            width: 100%; height: 100%; border: none;
+        }
+        #close-game {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.1); border: none;
+            width: 40px; height: 40px; border-radius: 20px;
+            cursor: pointer; font-size: 20px; color: #6B5B5B;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1001;
+        }
+        #close-game:hover { background: rgba(0,0,0,0.2); }
+    </style>
 </head>
 
 <body>
+    <div id="game-frame-container">
+        <button id="close-game">×</button>
+        <iframe id="game-frame" src=""></iframe>
+    </div>
+
     <div class="gallery-container">
         <div class="title-card">
             <h3>Daily Featured Game</h3>
@@ -19,8 +46,8 @@
             <p id="game-desc">Games are changing every day.</p>
         </div>
 
-        <a id="play-btn" href="#" class="play-button"
-            style="background: #fff; color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);">PLAY NOW</a>
+        <button id="play-btn" class="play-button"
+            style="background: #fff; color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); border: none; cursor: pointer;">PLAY NOW</button>
 
         <div id="rating-container" style="margin-top: 2rem; text-align: center;">
             <!-- Stars injected here -->
@@ -41,7 +68,20 @@
 
         window.onload = () => {
             const gallery = new GalleryManager();
+            window.GalleryAPI = gallery; // Expose to Iframe
             gallery.init();
+
+            document.getElementById('play-btn').onclick = () => {
+                const url = gallery.currentGame.path;
+                document.getElementById('game-frame').src = url;
+                document.getElementById('game-frame-container').style.display = 'block';
+            };
+
+            document.getElementById('close-game').onclick = () => {
+                document.getElementById('game-frame-container').style.display = 'none';
+                document.getElementById('game-frame').src = '';
+                gallery.renderLeaderboard(); // Refresh after play
+            };
         };
     </script>
 </body>
