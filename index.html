@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Games</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="gallery-container">
+        <div class="title-card">
+            <h3>Daily Featured Game</h3>
+            <h1 id="game-title"
+                style="background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; background-clip: text; color: transparent;">
+                Loading...</h1>
+            <p id="game-desc">Games are changing every day.</p>
+        </div>
+
+        <a id="play-btn" href="#" class="play-button"
+            style="background: #fff; color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);">PLAY NOW</a>
+
+        <div id="rating-container" style="margin-top: 2rem; text-align: center;">
+            <!-- Stars injected here -->
+        </div>
+
+        <div id="leaderboard-container"
+            style="margin-top: 2rem; text-align: center; background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px; max-width: 300px; margin-left: auto; margin-right: auto; backdrop-filter: blur(5px);">
+            <!-- Leaderboard injected here -->
+        </div>
+
+        <footer style="position: absolute; bottom: 20px; opacity: 0.5; font-size: 0.8rem;">
+            Gallery Games Prototype v0.3
+        </footer>
+    </div>
+
+    <script type="module">
+        import { GalleryManager } from './assets/js/GalleryManager.js';
+
+        window.onload = () => {
+            const gallery = new GalleryManager();
+            gallery.init();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Slash</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script type="module">
+        import { SlashEngine } from './js/core/SlashEngine.js';
+        import { InputSystem } from './js/systems/InputSystem.js';
+
+        window.onload = () => {
+            const canvas = document.getElementById('gameCanvas');
+            const engine = new SlashEngine(canvas);
+            const input = new InputSystem(canvas, engine);
+
+            engine.start();
+        };
+    </script>
+</body>
+
+</html>

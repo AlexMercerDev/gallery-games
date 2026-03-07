@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Puff Pop</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #FFF9C4;
+            /* Pale Yellow */
+            touch-action: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui-layer"
+        style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Game Over / High Score Form -->
+        <div id="gameOverPanel"
+            style="display: none; background: rgba(255, 255, 255, 0.95); padding: 2rem; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); pointer-events: auto; border: 2px solid #FFCC80;">
+            <h1 style="color: #FF9800; margin: 0 0 10px 0; font-size: 2.5rem;">Game Over!</h1>
+            <p id="finalScore" style="font-size: 1.5rem; color: #555; margin: 0 0 20px 0;">Score: 0</p>
+
+            <div id="highScoreInput" style="display: none;">
+                <p style="color: #FFB74D; font-weight: bold;">New Highscore!</p>
+                <input type="text" id="playerName" placeholder="Enter Name" maxlength="10"
+                    style="padding: 10px; border: 2px solid #FFCC80; border-radius: 10px; font-size: 1.2rem; text-align: center; width: 150px; background: #FFF3E0; color: #555;">
+                <br><br>
+                <button id="saveBtn"
+                    style="background: #FF9800; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1.2rem; cursor: pointer;">Save</button>
+            </div>
+
+            <div id="retryContainer" style="margin-top: 20px;">
+                <div id="miniLeaderboard"
+                    style="margin-bottom: 20px; font-size: 0.9rem; color: #555; text-align: left; display: inline-block;">
+                </div>
+                <br>
+                <button id="retryBtn"
+                    style="background: #FFF176; color: #555; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1.2rem; cursor: pointer; font-weight: bold;">Play
+                    Again</button>
+            </div>
+        </div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <script type="module">
+        import { PopEngine } from './js/core/PopEngine.js';
+        window.onload = () => {
+            const canvas = document.getElementById('gameCanvas');
+            const game = new PopEngine(canvas);
+
+            // UI Bindings
+            game.onGameOver = (score, isHighscore, leaderboard) => {
+                const panel = document.getElementById('gameOverPanel');
+                const scoreText = document.getElementById('finalScore');
+                const inputDiv = document.getElementById('highScoreInput');
+                const retryContainer = document.getElementById('retryContainer');
+                const lbDiv = document.getElementById('miniLeaderboard');
+
+                panel.style.display = 'block';
+                scoreText.innerText = `Score: ${score}`;
+
+                if (leaderboard && leaderboard.length > 0) {
+                    lbDiv.innerHTML = '<b>Top Poppers:</b><br>' +
+                        leaderboard.slice(0, 3).map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join('<br>');
+                } else {
+                    lbDiv.innerHTML = '';
+                }
+
+                if (isHighscore) {
+                    inputDiv.style.display = 'block';
+                    retryContainer.style.display = 'none';
+                    setTimeout(() => document.getElementById('playerName').focus(), 100);
+                } else {
+                    inputDiv.style.display = 'none';
+                    retryContainer.style.display = 'block';
+                }
+            };
+
+            document.getElementById('saveBtn').onclick = () => {
+                const name = document.getElementById('playerName').value || "Popper";
+                game.saveHighscore(name);
+                document.getElementById('highScoreInput').style.display = 'none';
+                document.getElementById('retryContainer').style.display = 'block';
+            };
+
+            document.getElementById('retryBtn').onclick = () => {
+                document.getElementById('gameOverPanel').style.display = 'none';
+                game.reset();
+                game.start();
+            };
+            game.start();
+        };
+    </script>
+</body>
+
+</html>

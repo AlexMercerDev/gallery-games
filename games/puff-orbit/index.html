@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Puff Orbit</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #050010;
+            /* Deep Space */
+            touch-action: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui-layer"
+        style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+
+        <!-- Game Over Panel -->
+        <div id="gameOverPanel"
+            style="display: none; background: rgba(20, 20, 60, 0.95); padding: 2rem; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(0,180,255,0.3); pointer-events: auto; border: 2px solid #00B0FF;">
+            <h1 style="color: #00B0FF; margin: 0 0 10px 0; font-size: 2.5rem; text-shadow: 0 0 10px #00B0FF;">Lost in
+                Space</h1>
+            <p id="finalScore" style="font-size: 1.5rem; color: #E1F5FE; margin: 0 0 20px 0;">Planets Visited: 0</p>
+
+            <div id="highScoreInput" style="display: none;">
+                <p style="color: #FFEA00; font-weight: bold;">New Best!</p>
+                <input type="text" id="playerName" placeholder="Enter Name" maxlength="10"
+                    style="padding: 10px; border: 2px solid #00B0FF; border-radius: 10px; font-size: 1.2rem; text-align: center; width: 150px; background: #0A0A20; color: #FFF;">
+                <br><br>
+                <button id="saveBtn"
+                    style="background: #00B0FF; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1.2rem; cursor: pointer; text-shadow: 0 0 5px rgba(255,255,255,0.5);">Save
+                    Mission</button>
+            </div>
+
+            <div id="retryContainer" style="margin-top: 20px;">
+                <div id="miniLeaderboard"
+                    style="margin-bottom: 20px; font-size: 0.9rem; color: #AAA; text-align: left; display: inline-block;">
+                </div>
+                <br>
+                <button id="retryBtn"
+                    style="background: #E1F5FE; color: #004D40; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1.2rem; cursor: pointer; font-weight: bold;">Launch
+                    Again</button>
+            </div>
+        </div>
+
+        <div id="startMsg"
+            style="color: #FFF; font-size: 1.5rem; margin-top: 200px; text-shadow: 0 0 10px #00B0FF; animation: pulse 1s infinite alternate;">
+            Tap to Launch</div>
+    </div>
+
+    <style>
+        @keyframes pulse {
+            from {
+                opacity: 0.6;
+            }
+
+            to {
+                opacity: 1;
+                text-shadow: 0 0 20px #00B0FF;
+            }
+        }
+    </style>
+
+    <canvas id="gameCanvas"></canvas>
+    <script type="module">
+        import { OrbitEngine } from './js/core/OrbitEngine.js';
+
+        window.onload = () => {
+            const canvas = document.getElementById('gameCanvas');
+            const game = new OrbitEngine(canvas);
+
+            // UI Bindings
+            game.onGameOver = (score, isHighscore, leaderboard) => {
+                const panel = document.getElementById('gameOverPanel');
+                const scoreText = document.getElementById('finalScore');
+                const inputDiv = document.getElementById('highScoreInput');
+                const retryContainer = document.getElementById('retryContainer');
+                const lbDiv = document.getElementById('miniLeaderboard');
+
+                panel.style.display = 'block';
+                scoreText.innerText = `Planets Visited: ${score}`;
+
+                if (leaderboard && leaderboard.length > 0) {
+                    lbDiv.innerHTML = '<b>Top Astronauts:</b><br>' +
+                        leaderboard.slice(0, 3).map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join('<br>');
+                } else {
+                    lbDiv.innerHTML = '';
+                }
+
+                if (isHighscore) {
+                    inputDiv.style.display = 'block';
+                    retryContainer.style.display = 'none';
+                    setTimeout(() => document.getElementById('playerName').focus(), 100);
+                } else {
+                    inputDiv.style.display = 'none';
+                    retryContainer.style.display = 'block';
+                }
+            };
+
+            game.onStart = () => {
+                document.getElementById('startMsg').style.display = 'none';
+            };
+
+            document.getElementById('saveBtn').onclick = () => {
+                const name = document.getElementById('playerName').value || "Cadet";
+                game.saveHighscore(name);
+                document.getElementById('highScoreInput').style.display = 'none';
+                document.getElementById('retryContainer').style.display = 'block';
+            };
+
+            document.getElementById('retryBtn').onclick = () => {
+                document.getElementById('gameOverPanel').style.display = 'none';
+                game.reset();
+                game.start();
+            };
+
+            game.start();
+        };
+    </script>
+</body>
+
+</html>
