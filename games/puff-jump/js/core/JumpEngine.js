@@ -37,6 +37,17 @@ export class JumpEngine {
         this.cameraY = 0;
         this.shake = 0;
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#FFFFFF', accent: '#FFB7B2' },
+            { name: 'Blue', color: '#81D4FA', accent: '#4FC3F7' },
+            { name: 'Green', color: '#A5D6A7', accent: '#81C784' },
+            { name: 'Purple', color: '#CE93D8', accent: '#BA68C8' },
+            { name: 'Orange', color: '#FFCC80', accent: '#FFB74D' },
+            { name: 'Pink', color: '#F48FB1', accent: '#F06292' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-jump-skin')) || 0;
+
         this.buildings = [];
         this.particles = [];
         this.bgs = []; // Background layers
@@ -513,7 +524,8 @@ export class JumpEngine {
         this.ctx.rotate(p.rotation);
 
         // Puff Body (White/Pink Tint)
-        this.ctx.fillStyle = '#FFF';
+        const skinColor = this.skins[this.currentSkin].color;
+        this.ctx.fillStyle = skinColor;
         this.ctx.beginPath();
         this.ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
         this.ctx.fill();
@@ -539,5 +551,10 @@ export class JumpEngine {
             this.ctx.fillStyle = pt.color;
             this.ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
         }
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-jump-skin', this.currentSkin);
     }
 }

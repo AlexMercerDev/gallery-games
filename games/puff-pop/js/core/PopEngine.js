@@ -31,6 +31,10 @@ export class PopEngine {
         this.grid = []; // [row][col] -> { type: index, active: bool, x, y }
         this.projectile = null; // { x, y, vx, vy, type }
         this.nextProjectileType = 0;
+        this.particles = []; // { x, y, vx, vy, life, color }
+
+        // Juice
+        this.shake = 0;
 
         // Aiming
         this.mouse = { x: 0, y: 0 };
@@ -113,6 +117,22 @@ export class PopEngine {
         this.nextProjectileType = Math.floor(Math.random() * this.colors.length);
     }
 
+    spawnParticles(x, y, color, count = 8) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0,
+                color: color,
+                size: 3 + Math.random() * 5
+            });
+        }
+    }
+
     onMove(e) {
         const rect = this.canvas.getBoundingClientRect();
         this.mouse.x = (e.clientX || e.pageX) - rect.left;
@@ -156,6 +176,19 @@ export class PopEngine {
 
     update() {
         if (this.isGameOver) return;
+
+        // Juice Decay
+        if (this.shake > 0) this.shake *= 0.9;
+
+        // Particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1; // Slight gravity
+            p.life -= 0.02;
+            if (p.life <= 0) this.particles.splice(i, 1);
+        }
 
         // Projectile Movement
         if (this.projectile && this.projectile.moving) {
@@ -208,6 +241,7 @@ export class PopEngine {
             }
 
             if (hit) {
+                this.shake = 5; // Screen shake on impact
                 this.snapToGrid();
             }
         }
@@ -259,6 +293,10 @@ export class PopEngine {
             this.grid[bestRC.r][bestRC.c].active = true;
             this.grid[bestRC.r][bestRC.c].type = this.projectile.type;
 
+            // Spawn particles on impact
+            const pos = this.getGridPos(bestRC.r, bestRC.c);
+            this.spawnParticles(pos.x, pos.y, this.colors[this.projectile.type].c, 12);
+
             // TODO: Match 3 Logic
             // TODO: Drop Logic
             this.score += 10;
@@ -274,6 +312,12 @@ export class PopEngine {
         // Clear
         this.ctx.fillStyle = '#FFF9C4';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Apply Screen Shake
+        this.ctx.save();
+        if (this.shake > 0) {
+            this.ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+        }
 
         // Grid
         for (let r = 0; r < this.rows; r++) {
@@ -297,6 +341,18 @@ export class PopEngine {
         if (this.projectile) {
             this.drawBubble(this.projectile.x, this.projectile.y, this.colors[this.projectile.type]);
         }
+
+        // Particles
+        for (let p of this.particles) {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1.0;
+
+        this.ctx.restore(); // End shake
 
         // Next Projectile Preview
         const nextCol = this.colors[this.nextProjectileType];

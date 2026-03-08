@@ -30,6 +30,17 @@ export class ShieldEngine {
         // Particles
         this.particles = [];
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#E1F5FE', glow: '#00B0FF' },
+            { name: 'Red', color: '#FFCDD2', glow: '#F44336' },
+            { name: 'Green', color: '#C8E6C9', glow: '#4CAF50' },
+            { name: 'Purple', color: '#E1BEE7', glow: '#9C27B0' },
+            { name: 'Orange', color: '#FFE0B2', glow: '#FF9800' },
+            { name: 'Pink', color: '#F8BBD0', glow: '#E91E63' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-shield-skin')) || 0;
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
@@ -233,9 +244,12 @@ export class ShieldEngine {
         this.ctx.scale(scale, scale);
 
         // Glow
+        const skinColor = this.skins[this.currentSkin].color;
+        const skinGlow = this.skins[this.currentSkin].glow;
+        
         this.ctx.shadowBlur = 30;
-        this.ctx.shadowColor = '#00B0FF';
-        this.ctx.fillStyle = '#E1F5FE';
+        this.ctx.shadowColor = skinGlow;
+        this.ctx.fillStyle = skinColor;
         this.ctx.beginPath();
         this.ctx.arc(0, 0, this.centerRadius, 0, Math.PI * 2);
         this.ctx.fill();
@@ -300,5 +314,10 @@ export class ShieldEngine {
         this.ctx.font = 'bold 20px sans-serif';
         this.ctx.textAlign = 'left';
         this.ctx.fillText(`Score: ${this.score}`, 20, 30);
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-shield-skin', this.currentSkin);
     }
 }

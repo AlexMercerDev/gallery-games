@@ -38,6 +38,7 @@ export class SwingEngine {
 
         // Juice
         this.shake = 0;
+        this.particles = []; // { x, y, vx, vy, life, color, size }
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
@@ -157,6 +158,22 @@ export class SwingEngine {
         });
     }
 
+    spawnParticles(x, y, color, count = 6) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 3;
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0,
+                color: color,
+                size: 2 + Math.random() * 4
+            });
+        }
+    }
+
     tryGrapple() {
         // Find nearest anchor above player?
         // Actually nearest distance
@@ -186,6 +203,10 @@ export class SwingEngine {
             this.rope.length = minDist;
             this.player.color = '#FFFF00'; // Feedback: Turn yellow
             this.lastAnchor = nearest; // Mark as used
+            
+            // Spawn particles on grab
+            this.spawnParticles(nearest.x, nearest.y, '#795548', 8);
+            this.shake = 3;
         } else {
             this.player.color = '#CCCCCC'; // Feedback: Grey (Miss)
         }
@@ -196,6 +217,9 @@ export class SwingEngine {
             this.rope.active = false;
             this.player.vy -= 4; // STRONGER JUMP BOOST
             this.player.color = '#FFFFFF'; // Reset color
+            
+            // Spawn particles on release
+            this.spawnParticles(this.player.x, this.player.y, '#FFF', 10);
         }
     }
 
@@ -214,7 +238,18 @@ export class SwingEngine {
     update() {
         if (this.isGameOver) return;
 
+        // Juice Decay
         if (this.shake > 0) this.shake *= 0.9;
+
+        // Particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1; // Slight gravity
+            p.life -= 0.025;
+            if (p.life <= 0) this.particles.splice(i, 1);
+        }
 
         // Cloud movement
         for (let c of this.clouds) {
@@ -390,6 +425,16 @@ export class SwingEngine {
             this.ctx.arc(c.x - c.size * 0.7, c.y + c.size * 0.2, c.size * 0.8, 0, Math.PI * 2);
             this.ctx.fill();
         }
+
+        // Particles
+        for (let p of this.particles) {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1.0;
 
         // Lava
         this.ctx.fillStyle = '#FF5722';

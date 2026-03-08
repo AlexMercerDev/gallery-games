@@ -32,6 +32,17 @@ export class OrbitEngine {
         this.collectibles = []; // {x, y, r, collected}
         this.asteroids = []; // {planetIndex, angle, dist, speed, r}
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#FFFFFF', visor: '#00B0FF' },
+            { name: 'Red', color: '#FF5252', visor: '#D32F2F' },
+            { name: 'Green', color: '#69F0AE', visor: '#00C853' },
+            { name: 'Purple', color: '#E040FB', visor: '#AA00FF' },
+            { name: 'Orange', color: '#FFAB40', visor: '#FF6D00' },
+            { name: 'Pink', color: '#FF4081', visor: '#F50057' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-orbit-skin')) || 0;
+
         this.centerX = 0;
 
         this.resize();
@@ -446,16 +457,19 @@ export class OrbitEngine {
         this.ctx.rotate(p.angle); // Rotate with orbit?
 
         // Puff Body
-        this.ctx.fillStyle = '#FFF';
+        const skinColor = this.skins[this.currentSkin].color;
+        const visorColor = this.skins[this.currentSkin].visor;
+        
+        this.ctx.fillStyle = skinColor;
         this.ctx.shadowBlur = 15;
-        this.ctx.shadowColor = '#00B0FF';
+        this.ctx.shadowColor = visorColor;
         this.ctx.beginPath();
         this.ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.shadowBlur = 0;
 
         // Helmet Visor
-        this.ctx.fillStyle = '#00B0FF';
+        this.ctx.fillStyle = visorColor;
         this.ctx.beginPath();
         this.ctx.ellipse(2, -2, 8, 5, Math.PI / 4, 0, Math.PI * 2);
         this.ctx.fill();
@@ -475,5 +489,10 @@ export class OrbitEngine {
         this.ctx.font = 'bold 30px sans-serif';
         this.ctx.textAlign = 'left';
         this.ctx.fillText(`Score: ${this.score}`, 20, 40);
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-orbit-skin', this.currentSkin);
     }
 }

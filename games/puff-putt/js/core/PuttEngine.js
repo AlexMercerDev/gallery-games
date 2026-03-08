@@ -35,6 +35,10 @@ export class PuttEngine {
             currX: 0, currY: 0
         };
 
+        // Juice
+        this.particles = []; // { x, y, vx, vy, life, color, size }
+        this.shake = 0;
+
         // Level
         this.terrain = []; // Array of line segments? Or rectangles? Let's use Rects for simplicity first.
         this.holeObj = { x: 0, y: 0, radius: 20 };
@@ -155,8 +159,29 @@ export class PuttEngine {
             this.ball.vy = Math.sin(angle) * force;
             this.ball.isMoving = true;
 
+            // Spawn particles on hit
+            const screenBallX = this.ball.x - this.camera.x;
+            this.spawnParticles(screenBallX, this.ball.y, '#FFF', 8);
+            this.shake = 3;
+
             this.shotsLeft--;
             if (this.shotsLeft < 0) this.shotsLeft = 0; // Cap
+        }
+    }
+
+    spawnParticles(x, y, color, count = 6) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 3;
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0,
+                color: color,
+                size: 2 + Math.random() * 4
+            });
         }
     }
 
@@ -174,6 +199,19 @@ export class PuttEngine {
 
     update() {
         if (this.isGameOver) return;
+
+        // Juice Decay
+        if (this.shake > 0) this.shake *= 0.9;
+
+        // Particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.15; // Gravity
+            p.life -= 0.025;
+            if (p.life <= 0) this.particles.splice(i, 1);
+        }
 
         // Physics
         if (this.ball.isMoving) {
@@ -202,6 +240,9 @@ export class PuttEngine {
                                 if (Math.abs(this.ball.vy) < 1) {
                                     this.ball.vy = 0;
                                     onGround = true;
+                                } else {
+                                    // Spawn particles on bounce
+                                    this.spawnParticles(this.ball.x, this.ball.y + this.ball.radius, '#81C784', 4);
                                 }
                             }
                         }
@@ -270,6 +311,10 @@ export class PuttEngine {
         this.ball.inHole = true;
         this.ball.isMoving = false;
 
+        // Spawn celebration particles
+        this.spawnParticles(this.holeObj.x, this.holeObj.y, '#FFD700', 20);
+        this.shake = 8;
+
         // Rewards
         // Need to calculate Par?
         this.shotsLeft += 3; // FIX: Increased reward from 2 to 3 to make it easier
@@ -315,6 +360,12 @@ export class PuttEngine {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save();
+        
+        // Screen Shake
+        if (this.shake > 0) {
+            this.ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+        }
+        
         this.ctx.translate(-this.camera.x, -this.camera.y); // Vertical cam? No, just X for now.
 
         // Terrain
@@ -370,6 +421,16 @@ export class PuttEngine {
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(this.ball.face, this.ball.x, this.ball.y);
         }
+
+        // Particles (in world space)
+        for (let p of this.particles) {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1.0;
 
         this.ctx.restore();
 

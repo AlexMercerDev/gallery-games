@@ -20,6 +20,17 @@ export class PuffEngine {
 
         this.isRunning = false;
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', colors: ['#FFB74D', '#FF8A65', '#FF5722', '#E64A19', '#BF360C'] },
+            { name: 'Cool', colors: ['#4FC3F7', '#29B6F6', '#03A9F4', '#039BE5', '#0288D1'] },
+            { name: 'Mint', colors: ['#A5D6A7', '#81C784', '#4CAF50', '#43A047', '#388E3C'] },
+            { name: 'Berry', colors: ['#F48FB1', '#F06292', '#EC407A', '#E91E63', '#C2185B'] },
+            { name: 'Royal', colors: ['#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2'] },
+            { name: 'Golden', colors: ['#FFF59D', '#FFEE58', '#FFEB3B', '#FDD835', '#FBC02D'] }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-merge-skin')) || 0;
+
         // Input
         canvas.addEventListener('mousemove', e => this.onMove(e));
         canvas.addEventListener('mouseup', e => this.onClick(e));
@@ -397,7 +408,11 @@ export class PuffEngine {
 
     drawPuff(b) {
         this.ctx.globalAlpha = b.isParticle ? (1 - b.age / 60) : 1.0;
-        this.ctx.fillStyle = b.type.color;
+        
+        // Use skin color if available, otherwise default
+        const color = this.skins[this.currentSkin].colors[b.tier] || b.type.color;
+        this.ctx.fillStyle = color;
+        
         this.ctx.beginPath();
         this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
         this.ctx.fill();
@@ -417,5 +432,10 @@ export class PuffEngine {
             this.ctx.fill();
         }
         this.ctx.globalAlpha = 1.0;
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-merge-skin', this.currentSkin);
     }
 }

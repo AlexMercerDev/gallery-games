@@ -109,6 +109,12 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
+        <!-- Skin Selector -->
+        <button id="skinBtn"
+            style="position: absolute; top: 20px; left: 20px; pointer-events: auto; background: rgba(255,255,255,0.9); border: 3px solid #4CAF50; border-radius: 15px; padding: 10px 15px; font-size: 16px; cursor: pointer; font-weight: bold; color: #2E7D32; transform: skew(-10deg); box-shadow: 3px 3px 0 #2E7D32;">
+            🎨 Skin
+        </button>
+
         <div id="score-display">0m</div>
         <div id="hint">TAP TO JUMP</div>
 
@@ -130,6 +136,19 @@
 
         window.engine = engine;
         engine.start();
+
+        // Skin Selector
+        document.getElementById('skinBtn').onclick = () => {
+            engine.nextSkin();
+            const skinName = engine.skins[engine.currentSkin].name;
+            document.getElementById('skinBtn').innerText = `🎨 ${skinName}`;
+        };
+
+        // Initialize skin button text
+        setTimeout(() => {
+            const skinName = engine.skins[engine.currentSkin].name;
+            document.getElementById('skinBtn').innerText = `🎨 ${skinName}`;
+        }, 100);
     </script>
 </body>
 
