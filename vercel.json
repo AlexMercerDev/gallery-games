@@ -3,13 +3,21 @@
   "name": "gallery-games",
   "framework": null,
   "buildCommand": "",
-  "outputDirectory": "games/puff-merge",
+  "outputDirectory": ".",
   "devCommand": "",
   "installCommand": "",
   "routes": [
     {
       "src": "/games/(.*)",
       "dest": "/games/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/archive/(.*)",
+      "dest": "/archive/$1"
     },
     {
       "src": "/(.*)",
