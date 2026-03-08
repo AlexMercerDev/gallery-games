@@ -39,6 +39,18 @@ export class SwingEngine {
         // Juice
         this.shake = 0;
         this.particles = []; // { x, y, vx, vy, life, color, size }
+
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#FFF' },
+            { name: 'Cool', color: '#4FC3F7' },
+            { name: 'Mint', color: '#A5D6A7' },
+            { name: 'Berry', color: '#F48FB1' },
+            { name: 'Royal', color: '#CE93D8' },
+            { name: 'Golden', color: '#FFF59D' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-swing-skin')) || 0;
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
@@ -521,7 +533,7 @@ export class SwingEngine {
         }
 
         // Player
-        this.ctx.fillStyle = '#FFF'; // Puff
+        this.ctx.fillStyle = this.skins[this.currentSkin].color; // Puff
         this.ctx.beginPath();
         this.ctx.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
         this.ctx.fill();
@@ -614,5 +626,10 @@ export class SwingEngine {
         this.ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
         this.ctx.beginPath(); this.ctx.arc(x - r * 0.5, y + r * 0.2, r * 0.15, 0, Math.PI * 2); this.ctx.fill();
         this.ctx.beginPath(); this.ctx.arc(x + r * 0.5, y + r * 0.2, r * 0.15, 0, Math.PI * 2); this.ctx.fill();
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-swing-skin', this.currentSkin);
     }
 }

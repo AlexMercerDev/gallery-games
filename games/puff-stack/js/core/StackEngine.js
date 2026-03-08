@@ -37,6 +37,17 @@ export class StackEngine {
         this.popups = []; // {x, y, text, life, dy}
         this.backgroundObjects = []; // Clouds/Stars
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', hueOffset: 0 },
+            { name: 'Cool', hueOffset: 180 },
+            { name: 'Mint', hueOffset: 120 },
+            { name: 'Berry', hueOffset: 330 },
+            { name: 'Royal', hueOffset: 280 },
+            { name: 'Golden', hueOffset: 50 }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-stack-skin')) || 0;
+
         this.centerX = 0; // For centering on wide screens
 
         this.resize();
@@ -465,11 +476,17 @@ export class StackEngine {
     }
 
     drawBlock(b) {
-        this.ctx.fillStyle = `hsl(${b.hue}, 70%, 60%)`;
+        const hue = (b.hue + this.skins[this.currentSkin].hueOffset) % 360;
+        this.ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
         this.ctx.fillRect(b.x, b.y, b.w, b.h);
         this.ctx.fillStyle = `rgba(255,255,255,0.3)`; // Top highlight
         this.ctx.fillRect(b.x, b.y, b.w, 5);
         this.ctx.fillStyle = `rgba(0,0,0,0.1)`; // Side shadow
         this.ctx.fillRect(b.x + b.w - 5, b.y, 5, b.h);
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-stack-skin', this.currentSkin);
     }
 }

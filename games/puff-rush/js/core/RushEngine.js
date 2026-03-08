@@ -28,6 +28,17 @@ export class RushEngine {
             face: '>_<'
         };
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#F48FB1' },
+            { name: 'Cool', color: '#4FC3F7' },
+            { name: 'Mint', color: '#A5D6A7' },
+            { name: 'Berry', color: '#EC407A' },
+            { name: 'Royal', color: '#AB47BC' },
+            { name: 'Golden', color: '#FFEB3B' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-rush-skin')) || 0;
+
         this.input = {
             jumping: false
         };
@@ -359,7 +370,7 @@ export class RushEngine {
         }
 
         // Player
-        this.ctx.fillStyle = this.player.color;
+        this.ctx.fillStyle = this.skins[this.currentSkin].color;
         this.ctx.beginPath();
         this.ctx.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
         this.ctx.fill();
@@ -399,5 +410,10 @@ export class RushEngine {
             this.ctx.fillText("Tap to Jump", this.canvas.width / 2, this.canvas.height / 2);
             this.ctx.fillText("Hold to Glide", this.canvas.width / 2, this.canvas.height / 2 + 30);
         }
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-rush-skin', this.currentSkin);
     }
 }

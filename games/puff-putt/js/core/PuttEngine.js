@@ -39,6 +39,17 @@ export class PuttEngine {
         this.particles = []; // { x, y, vx, vy, life, color, size }
         this.shake = 0;
 
+        // Skins
+        this.skins = [
+            { name: 'Classic', color: '#FFF' },
+            { name: 'Cool', color: '#4FC3F7' },
+            { name: 'Mint', color: '#A5D6A7' },
+            { name: 'Berry', color: '#F48FB1' },
+            { name: 'Royal', color: '#CE93D8' },
+            { name: 'Golden', color: '#FFF59D' }
+        ];
+        this.currentSkin = parseInt(localStorage.getItem('puff-putt-skin')) || 0;
+
         // Level
         this.terrain = []; // Array of line segments? Or rectangles? Let's use Rects for simplicity first.
         this.holeObj = { x: 0, y: 0, radius: 20 };
@@ -406,7 +417,7 @@ export class PuttEngine {
 
         // Ball
         if (!this.ball.inHole) {
-            this.ctx.fillStyle = '#FFF';
+            this.ctx.fillStyle = this.skins[this.currentSkin].color;
             this.ctx.beginPath();
             this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
             this.ctx.fill();
@@ -478,5 +489,10 @@ export class PuttEngine {
         this.ctx.font = 'bold 24px sans-serif';
         this.ctx.fillText(`Hole: ${this.holesCleared + 1}`, 20, 40);
         this.ctx.fillText(`Shots: ${this.shotsLeft}`, 20, 70);
+    }
+
+    nextSkin() {
+        this.currentSkin = (this.currentSkin + 1) % this.skins.length;
+        localStorage.setItem('puff-putt-skin', this.currentSkin);
     }
 }
