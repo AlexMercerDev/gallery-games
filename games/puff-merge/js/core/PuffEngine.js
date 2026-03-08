@@ -124,6 +124,9 @@ export class PuffEngine {
             this.resolveWalls();
         }
 
+        // Clean up particles
+        this.bodies = this.bodies.filter(b => !b.isParticle || b.age < 60);
+
         // Game Over Check
         // Check if any body is above the line (y < 100) and relatively stable
         let isOverflowing = false;
@@ -278,8 +281,11 @@ export class PuffEngine {
         const newY = (b1.y + b2.y) / 2;
         const newTier = b1.tier + 1;
 
+        // Arthur's Juice: Screen Shake & Particles
+        this.shake = 10; 
+        this.spawnParticles(newX, newY, b1.type.color);
+
         // Remove old
-        // Sort indices to remove higher first
         if (idx1 > idx2) {
             this.bodies.splice(idx1, 1);
             this.bodies.splice(idx2, 1);
@@ -291,14 +297,37 @@ export class PuffEngine {
         // Add new
         this.spawnPuff(newX, newY, newTier);
         this.score += (newTier + 1) * 10;
+    }
 
-        // TODO: Particle effects
+    spawnParticles(x, y, color) {
+        for (let i = 0; i < 12; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 5;
+            this.bodies.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                radius: 3,
+                tier: -1, // Particle marker
+                type: { color: color, face: '' },
+                id: Math.random(),
+                age: 0,
+                isParticle: true
+            });
+        }
     }
 
     render() {
+        this.ctx.save();
+        if (this.shake > 0) {
+            this.ctx.translate(Math.random() * this.shake - this.shake/2, Math.random() * this.shake - this.shake/2);
+            this.shake *= 0.9;
+            if (this.shake < 0.1) this.shake = 0;
+        }
+
         // Clear
         this.ctx.fillStyle = '#FDF6E3'; // Cream/Paper white
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(-50, -50, this.canvas.width + 100, this.canvas.height + 100);
 
         // Container
         this.ctx.strokeStyle = '#D3C6AA';
@@ -319,6 +348,8 @@ export class PuffEngine {
         for (let b of this.bodies) {
             this.drawPuff(b);
         }
+        
+        this.ctx.restore();
 
         // Next Puff preview at mouse
         if (!this.isGameOver) {
@@ -365,22 +396,26 @@ export class PuffEngine {
     }
 
     drawPuff(b) {
+        this.ctx.globalAlpha = b.isParticle ? (1 - b.age / 60) : 1.0;
         this.ctx.fillStyle = b.type.color;
         this.ctx.beginPath();
         this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Face
-        this.ctx.fillStyle = '#6B5B5B'; // Soft brown text
-        this.ctx.font = 'bold 16px sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(b.type.face, b.x, b.y);
+        if (!b.isParticle) {
+            // Face
+            this.ctx.fillStyle = '#6B5B5B'; 
+            this.ctx.font = 'bold 16px sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(b.type.face, b.x, b.y);
 
-        // Shine/Glow
-        this.ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        this.ctx.beginPath();
-        this.ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.2, 0, Math.PI * 2);
-        this.ctx.fill();
+            // Shine/Glow
+            this.ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            this.ctx.beginPath();
+            this.ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.2, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1.0;
     }
 }
